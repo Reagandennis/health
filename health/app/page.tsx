@@ -1,23 +1,13 @@
 import Image from "next/image";
+import Footer from "./components/Footer";
 import Link from "next/link";
 import React from "react";
 
 export default function Home() {
 return (
-    <div className="grid grid-rows-[60px_1fr_80px] items-center justify-items-center min-h-screen bg-[#f3f7f4] p-8 sm:p-20 gap-16 font-[family-name:var(--font-geist-sans)] text-[#1d3557]">
-    {/* Header */}
-    <header className="row-start-1 w-full flex items-center justify-between px-6 sm:px-20">
-        <h1 className="text-3xl font-bold text-[#2a9d8f]">Echo</h1>
-        <nav className="flex gap-6 text-sm">
-        <a href="#services" className="hover:underline text-[#1d3557]">Services</a>
-        <Link href="/schedule" className="hover:underline text-[#1d3557]">Schedule</Link>
-        <Link href="/doctors" className="hover:underline text-[#1d3557]">Be a Doctor</Link>
-        <a href="#contact" className="hover:underline text-[#1d3557]">Contact</a>
-        </nav>
-    </header>
-
-    {/* Main Content */}
-    <main className="row-start-2 flex flex-col gap-16 items-center sm:items-start text-center sm:text-left">
+    <div className="flex flex-col min-h-screen bg-[#f3f7f4] font-[family-name:var(--font-geist-sans)] text-[#1d3557]">
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col gap-16 items-center sm:items-start text-center sm:text-left px-8 sm:px-20 pt-24">
         {/* Hero Section */}
         <section className="flex flex-col-reverse sm:flex-row items-center sm:items-start gap-6 w-full">
         {/* Text Content */}
@@ -92,7 +82,7 @@ return (
         </section>
 
         {/* Schedule Section */}
-        <section id="schedule" className="flex flex-col gap-8">
+        <section id="schedule" className="flex flex-col gap-8 mb-16">
         <h3 className="text-3xl font-semibold text-[#2a9d8f]">Schedule a Session</h3>
         <p className="text-lg text-[#457b9d] max-w-prose">
             Your well-being is our priority. We offer flexible scheduling options to fit your lifestyle, ensuring that professional support is always within reach. Our simple booking process allows you to select a convenient time to connect with a licensed therapist.
@@ -109,28 +99,7 @@ return (
         </section>
     </main>
 
-    {/* Footer */}
-    <footer id="contact" className="row-start-3 w-full flex flex-col sm:flex-row gap-8 items-center justify-between px-6 sm:px-20 bg-[#2a9d8f] text-[#f3f7f4] py-6 text-center sm:text-left">
-        <div>
-        <h4 className="text-lg font-semibold">Contact Us</h4>
-        <p>Email: <a href="mailto:info@psychologyservices.com" className="underline">info@psychologyservices.com</a></p>
-        <p>Phone: <a href="tel:+1234567890" className="underline">+1 (234) 567-890</a></p>
-        </div>
-        <div>
-        <h4 className="text-lg font-semibold">Visit Us</h4>
-        <p>123 Wellness Way<br />Suite 100<br />Your City, State, ZIP</p>
-        <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="underline">Find us on Google Maps</a>
-        </div>
-        <div>
-        <h4 className="text-lg font-semibold">Stay Connected</h4>
-        <p>Follow us on our social platforms for updates and tips:</p>
-        <div className="flex gap-4 justify-center sm:justify-start">
-            <a href="#" className="hover:underline">Facebook</a>
-            <a href="#" className="hover:underline">Twitter</a>
-            <a href="#" className="hover:underline">Instagram</a>
-        </div>
-        </div>
-    </footer>
+    <Footer />
     </div>
 );
 }

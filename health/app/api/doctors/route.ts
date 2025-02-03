@@ -19,13 +19,13 @@ const doctorApplicationSchema = z.object({
     'BEHAVIORAL_THERAPY',
     'CLINICAL_PSYCHOLOGY',
     'CHILD_PSYCHOLOGY',
-    'OTHER'
+    'OTHER',
   ]),
   yearsOfExperience: z.number().min(0),
   education: z.string().min(1, 'Education details are required'),
   bio: z.string().min(1, 'Bio is required'),
   currentWorkplace: z.string().optional(),
-  credentials: z.string().optional().nullable(), // Change to string to handle base64 encoding
+  credentials: z.string().optional().nullable(), // Handle base64-encoded strings
   status: z.enum(['PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED']).optional(),
   notes: z.string().optional(),
   reviewedAt: z.date().optional(),
@@ -62,4 +62,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
     }
   }
+}
+
+// Handle unsupported methods (e.g., GET, PUT, DELETE)
+export function GET() {
+  return NextResponse.json({ error: 'GET method is not allowed on this route.' }, { status: 405 });
 }
