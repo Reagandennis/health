@@ -13,7 +13,7 @@ Features
 
 -   **Health Records Management:** Users can store and access their medical history.
 
--   **Appointment Scheduling:** Book, reschedule, or cancel appointments with healthcare providers.
+-   **Appointment Scheduling:** Book, reschedule or cancel appointments with healthcare providers.
 
 -   **Notifications & Reminders:** Get notified about upcoming appointments and health check-ups.
 
