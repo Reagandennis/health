@@ -98,8 +98,6 @@ return (
         </Link>
         </section>
     </main>
-
-    <Footer />
     </div>
 );
 }
