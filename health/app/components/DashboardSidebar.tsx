@@ -86,25 +86,7 @@ export default function DashboardSidebar({ isOpen, onClose }: SidebarProps) {
                 </nav>
 
                 {/* Pro Badge */}
-                <div className="mt-auto p-4">
-                    <div className="rounded-lg bg-teal-800 p-4">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-600 text-white">
-                                    Pro
-                                </span>
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm font-medium text-white">
-                                    Upgrade to Pro
-                                </p>
-                                <p className="text-xs text-teal-200">
-                                    Access all features
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+               
             </div>
         </>
     );
