@@ -9,3 +9,7 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+// Debugging: Log the Prisma client and available models
+console.log('Prisma Client:', prisma);
+
