@@ -29,6 +29,9 @@ model DoctorApplication {
   reviewedAt        DateTime?
   reviewedBy        String?
 
+  // Add the relation to appointments
+  appointments      Appointment[]
+
   @@map("doctor_applications")
 }
 
@@ -48,4 +51,29 @@ enum MedicalSpecialization {
   CLINICAL_PSYCHOLOGY
   CHILD_PSYCHOLOGY
   OTHER
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  patientName String
+  date        DateTime
+  time        String
+  type        String
+  status      AppointmentStatus
+  notes       String?
+  doctorId    String
+  patientId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Add the relation to DoctorApplication
+  doctor      DoctorApplication @relation(fields: [doctorId], references: [id])
+
+  @@map("appointments")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
 }
