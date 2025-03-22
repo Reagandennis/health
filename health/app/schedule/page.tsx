@@ -29,7 +29,7 @@ export default function Schedule() {
 
   return (
     <div className="min-h-screen bg-[#f3f7f4] pt-16">
-        <header className="bg-white shadow-sm mt-4">
+        <header className=" mt-1">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-semibold text-[#2a9d8f]">
             Schedule an Appointment
