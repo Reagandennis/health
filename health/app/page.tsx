@@ -38,7 +38,7 @@ return (
         {/* Image Content */}
         <div className="sm:w-1/2 flex justify-center">
             <Image
-            src="/safe-space.jpg"
+            src="/echo-image.jpg"
             alt="A serene and welcoming therapy space"
             width={500}
             height={500}
