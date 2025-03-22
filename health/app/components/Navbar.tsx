@@ -27,18 +27,18 @@ const Navbar = () => {
 
           {/* Center - Navigation Links (Desktop) */}
           <div className="hidden sm:flex sm:items-center sm:gap-6">
-            <a href="#services" className="text-sm hover:underline text-[#1d3557]">
+            <Link href="/services" className="text-sm hover:underline text-[#1d3557]">
               Services
-            </a>
+            </Link>
             <Link href="/schedule" className="text-sm hover:underline text-[#1d3557]">
               Schedule
             </Link>
             <Link href="/doctors" className="text-sm hover:underline text-[#1d3557]">
               Be a Doctor
             </Link>
-            <a href="#contact" className="text-sm hover:underline text-[#1d3557]">
+            <Link href="/contact" className="text-sm hover:underline text-[#1d3557]">
               Contact
-            </a>
+            </Link>
           </div>
 
           {/* Right side - Auth buttons/Profile */}
@@ -127,7 +127,7 @@ const Navbar = () => {
       {/* Mobile menu */}
       <div className={`${isOpen ? 'block' : 'hidden'} sm:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
-          <a href="#services" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
+          <a href="/services" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
             Services
           </a>
           <Link href="/schedule" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">

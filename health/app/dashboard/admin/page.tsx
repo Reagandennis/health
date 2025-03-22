@@ -1,6 +1,7 @@
 import { getSession } from '@auth0/nextjs-auth0';
 import React from 'react';
 import { prisma } from '../../../lib/prisma';
+import Link from 'next/link';
 
 export default async function AdminDashboard() {
     const session = await getSession();
@@ -113,8 +114,13 @@ export default async function AdminDashboard() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{doctor.email}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{doctor.createdAt.toLocaleDateString()}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <a href={`/admin/doctors/${doctor.id}`} className="text-indigo-600 hover:text-indigo-900 mr-3">Review</a>
-                                            </td>
+                                            <Link 
+    href={`/dashboard/doctor/${doctor.id}`} 
+    className="text-indigo-600 hover:text-indigo-900 mr-3"
+>
+    Review
+</Link>
+</td>
                                         </tr>
                                     ))
                                 )}
