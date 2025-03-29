@@ -17,7 +17,6 @@ export default function Schedule() {
   const [notes, setNotes] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -63,7 +62,6 @@ export default function Schedule() {
 
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Doctor Selection Section */}
           <div className="w-full lg:w-1/3">
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-xl font-semibold text-[#457b9d] mb-4">
@@ -73,74 +71,80 @@ export default function Schedule() {
                 <p>Loading doctors...</p>
               ) : error ? (
                 <p className="text-red-500">{error}</p>
-              ) : doctors.length > 0 ? (
-                <div className="space-y-4">
-                  {doctors.map((doctor) => (
-                    <div
-                      key={doctor.id}
-                      className={`p-4 border border-gray-400 rounded-lg cursor-pointer transition-colors ${
-                        selectedDoctor === doctor.id
-                          ? "bg-[#2a9d8f] text-white"
-                          : "bg-gray-50 hover:bg-gray-100"
-                      }`}
-                      onClick={() => setSelectedDoctor(doctor.id)}
-                    >
-                      <h3 className="font-medium">{doctor.name}</h3>
-                      <p className="text-sm opacity-90">{doctor.specialty}</p>
-                    </div>
-                  ))}
-                </div>
               ) : (
-                <p className="text-gray-600">No approved doctors available.</p>
+                <div className="space-y-4">
+                  {doctors.length > 0 ? (
+                    doctors.map((doctor) => (
+                      <div
+                        key={doctor.id}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                          selectedDoctor === doctor.id
+                            ? "bg-[#2a9d8f] text-white"
+                            : "bg-gray-50 hover:bg-gray-100"
+                        }`}
+                        onClick={() => setSelectedDoctor(doctor.id)}
+                      >
+                        <h3 className="font-medium">{doctor.name}</h3>
+                        <p className="text-sm opacity-90">{doctor.specialty}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No approved doctors available.</p>
+                  )}
+                </div>
               )}
             </div>
           </div>
 
-          {/* Appointment Scheduling Form */}
           <div className="w-full lg:w-2/3">
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="bg-white shadow-md rounded-lg p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Select Date */}
                 <div>
                   <label className="block text-sm font-medium text-[#457b9d]">
                     Select Date
-                    <input
-                      type="date"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f]"
-                      value={appointmentDate}
-                      onChange={(e) => setAppointmentDate(e.target.value)}
-                      required
-                    />
                   </label>
+                  <input
+                    type="date"
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f] transition duration-300 ease-in-out"
+                    value={appointmentDate}
+                    onChange={(e) => setAppointmentDate(e.target.value)}
+                    required
+                  />
                 </div>
 
+                {/* Select Time */}
                 <div>
                   <label className="block text-sm font-medium text-[#457b9d]">
                     Select Time
-                    <input
-                      type="time"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f]"
-                      value={appointmentTime}
-                      onChange={(e) => setAppointmentTime(e.target.value)}
-                      required
-                    />
                   </label>
+                  <input
+                    type="time"
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f] transition duration-300 ease-in-out"
+                    value={appointmentTime}
+                    onChange={(e) => setAppointmentTime(e.target.value)}
+                    required
+                  />
                 </div>
 
+                {/* Additional Notes */}
                 <div>
                   <label className="block text-sm font-medium text-[#457b9d]">
                     Additional Notes
-                    <textarea
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f]"
-                      rows={4}
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                    />
                   </label>
+                  <textarea
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f] transition duration-300 ease-in-out"
+                    rows={5}
+                    placeholder="Enter any special requests or notes..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
                 </div>
 
+                {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full rounded-full bg-[#2a9d8f] text-[#f3f7f4] px-8 py-3 text-base font-semibold hover:bg-[#249177] transition-colors"
+                  className="w-full rounded-full bg-[#2a9d8f] text-white px-6 py-3 text-lg font-semibold shadow-md hover:bg-[#249177] transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!selectedDoctor || !appointmentDate || !appointmentTime}
                 >
                   Schedule Appointment
