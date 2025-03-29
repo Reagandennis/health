@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Schedule() {
   interface Doctor {
@@ -11,16 +10,41 @@ export default function Schedule() {
     availability?: string[];
   }
 
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("");
   const [appointmentDate, setAppointmentDate] = useState<string>("");
   const [appointmentTime, setAppointmentTime] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const doctors: Doctor[] = [
-    { id: "1", name: "Dr. Sarah Johnson", specialty: "Psychiatrist" },
-    { id: "2", name: "Dr. Michael Chen", specialty: "Psychologist" },
-    { id: "3", name: "Dr. Emily Williams", specialty: "Therapist" },
-  ];
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await fetch("/api/admin"); // Ensure this is the correct endpoint
+        if (!response.ok) {
+          throw new Error("Failed to fetch doctors");
+        }
+        const data = await response.json();
+        console.log("Doctors Data:", data); // Debugging step
+
+        // Transform API data to match expected structure
+        const transformedData = data.map((doctor: any) => ({
+          id: doctor.id,
+          name: `${doctor.firstName} ${doctor.lastName}`, // Ensure full name is displayed
+          specialty: doctor.specialization, // Corrected field name
+        }));
+
+        setDoctors(transformedData);
+      } catch (error) {
+        setError("Error fetching doctors. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +53,7 @@ export default function Schedule() {
 
   return (
     <div className="min-h-screen bg-[#f3f7f4] pt-16">
-        <header className=" mt-1">
+      <header className="mt-1">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-semibold text-[#2a9d8f]">
             Schedule an Appointment
@@ -37,32 +61,42 @@ export default function Schedule() {
         </div>
       </header>
 
-    <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-6">
+          {/* Doctor Selection Section */}
           <div className="w-full lg:w-1/3">
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-xl font-semibold text-[#457b9d] mb-4">
                 Select a Doctor
               </h2>
-              <div className="space-y-4">
-                {doctors.map((doctor) => (
-                  <div
-                    key={doctor.id}
-                    className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                      selectedDoctor === doctor.id
-                        ? "bg-[#2a9d8f] text-white"
-                        : "bg-gray-50 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setSelectedDoctor(doctor.id)}
-                  >
-                    <h3 className="font-medium">{doctor.name}</h3>
-                    <p className="text-sm opacity-90">{doctor.specialty}</p>
-                  </div>
-                ))}
-              </div>
+              {loading ? (
+                <p>Loading doctors...</p>
+              ) : error ? (
+                <p className="text-red-500">{error}</p>
+              ) : doctors.length > 0 ? (
+                <div className="space-y-4">
+                  {doctors.map((doctor) => (
+                    <div
+                      key={doctor.id}
+                      className={`p-4 border border-gray-400 rounded-lg cursor-pointer transition-colors ${
+                        selectedDoctor === doctor.id
+                          ? "bg-[#2a9d8f] text-white"
+                          : "bg-gray-50 hover:bg-gray-100"
+                      }`}
+                      onClick={() => setSelectedDoctor(doctor.id)}
+                    >
+                      <h3 className="font-medium">{doctor.name}</h3>
+                      <p className="text-sm opacity-90">{doctor.specialty}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-600">No approved doctors available.</p>
+              )}
             </div>
           </div>
 
+          {/* Appointment Scheduling Form */}
           <div className="w-full lg:w-2/3">
             <div className="bg-white shadow rounded-lg p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
