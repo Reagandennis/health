@@ -2,7 +2,7 @@
 
 const Footer = () => {
 return (
-    <footer id="contact" className="w-full flex flex-col sm:flex-row gap-8 items-center justify-between px-6 sm:px-20 bg-[#2a9d8f] text-[#f3f7f4] py-6 text-center sm:text-left">
+    <footer id="contact" className="fixed bottom-0 w-full flex flex-col sm:flex-row gap-8 items-center justify-between px-6 sm:px-20 bg-[#2a9d8f] text-[#f3f7f4] py-6 text-center sm:text-left">
     <div>
         <h4 className="text-lg font-semibold">Contact Us</h4>
         <p>Email: <a href="mailto:info@psychologyservices.com" className="underline">info@psychologyservices.com</a></p>

@@ -17,6 +17,8 @@ export default function Schedule() {
   const [notes, setNotes] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>("");
+
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -30,8 +32,8 @@ export default function Schedule() {
         // Transform API data to match expected structure
         const transformedData = data.map((doctor: any) => ({
           id: doctor.id,
-          name: `${doctor.firstName} ${doctor.lastName}`, // Ensure full name is displayed
-          specialty: doctor.specialization, // Corrected field name
+          name: `${doctor.firstName} ${doctor.lastName}`,
+          specialty: doctor.specialization,
         }));
 
         setDoctors(transformedData);
@@ -45,9 +47,50 @@ export default function Schedule() {
     fetchDoctors();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ selectedDoctor, appointmentDate, appointmentTime, notes });
+
+    try {
+      console.log('Submitting appointment:', {
+        doctorId: selectedDoctor,
+        patientName: "Test Patient", // Replace with actual patient name
+        date: appointmentDate,
+        time: appointmentTime,
+        type: "CONSULTATION",
+        status: "SCHEDULED",
+        notes: notes
+      });
+
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          doctorId: selectedDoctor,
+          patientName: "Test Patient", // Replace with actual patient name
+          date: appointmentDate,
+          time: appointmentTime,
+          type: "CONSULTATION",
+          status: "SCHEDULED",
+          notes: notes
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Appointment creation response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to schedule appointment");
+      }
+
+      setSuccessMessage("Your appointment has been scheduled successfully!");
+      setSelectedDoctor("");
+      setAppointmentDate("");
+      setAppointmentTime("");
+      setNotes("");
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      setError("Error scheduling appointment. Please try again.");
+    }
   };
 
   return (
@@ -61,6 +104,12 @@ export default function Schedule() {
       </header>
 
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {successMessage && (
+          <div className="mb-4 p-4 bg-green-200 text-green-700 rounded-lg">
+            {successMessage}
+          </div>
+        )}
+
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="w-full lg:w-1/3">
             <div className="bg-white shadow rounded-lg p-6">
@@ -99,7 +148,6 @@ export default function Schedule() {
           <div className="w-full lg:w-2/3">
             <div className="bg-white shadow-md rounded-lg p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Select Date */}
                 <div>
                   <label className="block text-sm font-medium text-[#457b9d]">
                     Select Date
@@ -113,7 +161,6 @@ export default function Schedule() {
                   />
                 </div>
 
-                {/* Select Time */}
                 <div>
                   <label className="block text-sm font-medium text-[#457b9d]">
                     Select Time
@@ -127,7 +174,6 @@ export default function Schedule() {
                   />
                 </div>
 
-                {/* Additional Notes */}
                 <div>
                   <label className="block text-sm font-medium text-[#457b9d]">
                     Additional Notes
@@ -141,7 +187,6 @@ export default function Schedule() {
                   />
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   className="w-full rounded-full bg-[#2a9d8f] text-white px-6 py-3 text-lg font-semibold shadow-md hover:bg-[#249177] transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"

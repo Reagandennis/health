@@ -86,11 +86,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get doctor ID from the authenticated user
+    console.log('User email:', session.user.email);
+
+    // Get doctor without status restriction
     const doctor = await prisma.doctorApplication.findFirst({
       where: {
         email: session.user.email,
-        status: 'APPROVED',
+      },
+      include: {
+        appointments: {
+          orderBy: {
+            date: 'asc',
+          },
+        },
       },
     });
 
@@ -98,20 +106,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
     }
 
-    // Fetch appointments for the doctor
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        doctorId: doctor.id,
+    console.log('Found doctor with appointments:', doctor);
+
+    // Return both doctor and appointments
+    return NextResponse.json({
+      doctor: {
+        id: doctor.id,
+        firstName: doctor.firstName,
+        lastName: doctor.lastName,
+        email: doctor.email,
+        specialization: doctor.specialization,
+        licenseNumber: doctor.licenseNumber,
+        status: doctor.status,
       },
-      orderBy: {
-        date: 'asc',
-      },
+      appointments: doctor.appointments
     });
-    return NextResponse.json(appointments);
   } catch (error) {
-    console.error('Error fetching appointments:', error);
+    console.error('Error in GET /api/doctors:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch appointments' },
+      { error: 'Failed to fetch data' },
       { status: 500 }
     );
   }
