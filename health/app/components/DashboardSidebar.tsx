@@ -10,6 +10,8 @@ import {
   Settings,
   Home,
   X,
+  Menu,
+  ArrowLeft,
 } from "lucide-react";
 import React from "react";
 
@@ -44,19 +46,20 @@ export default function DashboardSidebar({ isOpen, onClose, userRole }: SidebarP
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-teal-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-teal-700 transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Close button - Mobile only */}
-        <div className="flex items-center justify-end p-4 lg:hidden">
+        {/* Header with close button */}
+        <div className="flex items-center justify-between p-4 border-b border-teal-600">
+          <h2 className="text-white font-semibold">Dashboard Menu</h2>
           <button onClick={onClose} className="text-white hover:text-gray-200">
-            <X className="h-6 w-6" />
+            <ArrowLeft className="h-5 w-5" />
           </button>
         </div>
 
         {/* Navigation Links */}
-        <nav className="mt-8 space-y-1 px-2">
+        <nav className="mt-4 space-y-1 px-2">
           {navigation
             .filter((item) => !userRole || item.roles.includes(userRole))
             .map((item) => {

@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }) {
 
             <div className="flex flex-col flex-1">
                 {/* Pass user data correctly */}
-                <DashboardHeader onMenuClick={() => setSidebarOpen(true)} user={user} />
+                <DashboardHeader onMenuClick={() => setSidebarOpen(true)} />
 
                 <main className="p-6">{children}</main>
             </div>

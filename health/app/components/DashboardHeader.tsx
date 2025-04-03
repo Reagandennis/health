@@ -19,7 +19,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
     if (isLoading) {
         return (
-            <header className="bg-white shadow-sm fixed w-full z-10">
+            <header className="bg-white shadow-sm w-full z-10">
                 <div className="flex items-center justify-between h-16 px-4">
                     <div className="animate-pulse h-8 w-32 bg-gray-200 rounded"></div>
                 </div>
@@ -29,7 +29,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
     if (error) {
         return (
-            <header className="bg-white shadow-sm fixed w-full z-10">
+            <header className="bg-white shadow-sm w-full z-10">
                 <div className="flex items-center justify-between h-16 px-4">
                     <div className="text-red-500">Error loading user data</div>
                 </div>
@@ -38,19 +38,21 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
     }
 
     return (
-        <header className="bg-white shadow-sm fixed w-full z-10">
+        <header className="bg-white shadow-sm w-full z-10">
             <div className="flex items-center justify-between h-16 px-4">
                 {/* Left section with menu button and logo */}
                 <div className="flex items-center">
                     <button
                         onClick={onMenuClick}
-                        className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
+                        className="p-2 rounded-lg hover:bg-gray-100 flex items-center"
+                        aria-label="Toggle menu"
                     >
-                        <Menu className="h-6 w-6 text-gray-600" />
+                        <Menu className="h-6 w-6 text-teal-600" />
+                        <span className="ml-2 text-sm font-medium text-gray-700 hidden sm:inline">Menu</span>
                     </button>
                     <Link href="/" className="ml-4">
                         <Image
-                            src="/logo.png"
+                            src="/echo-image.jpg"
                             alt="Health Logo"
                             width={40}
                             height={40}
