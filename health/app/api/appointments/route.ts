@@ -25,15 +25,36 @@ export async function GET() {
       where: {
         doctorId: doctor.id,
       },
+      include: {
+        doctor: {
+          select: {
+            firstName: true,
+            lastName: true,
+          }
+        }
+      },
       orderBy: {
         date: 'asc',
       },
     });
 
-    return NextResponse.json({ success: true, appointments });
+    // Transform the appointments to match the frontend interface
+    const formattedAppointments = appointments.map(appointment => ({
+      id: appointment.id,
+      patientName: appointment.patientName,
+      doctorName: `${appointment.doctor.firstName} ${appointment.doctor.lastName}`,
+      date: appointment.date.toISOString().split('T')[0],
+      time: appointment.time,
+      type: appointment.type,
+      status: appointment.status,
+      notes: appointment.notes,
+    }));
+
+    return NextResponse.json({ appointments: formattedAppointments });
   } catch (error) {
+    console.error('Error fetching appointments:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message },
+      { error: 'Failed to fetch appointments' },
       { status: 500 }
     );
   }
@@ -41,8 +62,24 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await req.json();
     
+    // Get the doctor's ID
+    const doctor = await prisma.doctorApplication.findFirst({
+      where: {
+        email: session.user.email,
+      },
+    });
+
+    if (!doctor) {
+      return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
+    }
+
     const newAppointment = await prisma.appointment.create({
       data: {
         patientName: data.patientName,
@@ -50,20 +87,39 @@ export async function POST(req: Request) {
         time: data.time,
         type: data.type,
         status: "SCHEDULED",
-        doctorId: data.doctorId,
+        doctorId: doctor.id,
         notes: data.notes,
-        updatedAt: new Date(),
       },
+      include: {
+        doctor: {
+          select: {
+            firstName: true,
+            lastName: true,
+          }
+        }
+      }
     });
 
+    // Format the response to match the frontend interface
+    const formattedAppointment = {
+      id: newAppointment.id,
+      patientName: newAppointment.patientName,
+      doctorName: `${newAppointment.doctor.firstName} ${newAppointment.doctor.lastName}`,
+      date: newAppointment.date.toISOString().split('T')[0],
+      time: newAppointment.time,
+      type: newAppointment.type,
+      status: newAppointment.status,
+      notes: newAppointment.notes,
+    };
+
     return NextResponse.json(
-      { success: true, appointment: newAppointment },
+      { appointment: formattedAppointment },
       { status: 201 }
     );
   } catch (error) {
     console.error('Appointment creation error:', error);
     return NextResponse.json(
-      { success: false, error: (error as Error).message },
+      { error: 'Failed to create appointment' },
       { status: 500 }
     );
   }
