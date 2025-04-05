@@ -28,6 +28,8 @@ model DoctorApplication {
   updatedAt         DateTime              @updatedAt
   reviewedAt        DateTime?
   reviewedBy        String?
+  wallet            Wallet?
+  completedSessions Int    @default(0)
 
   // Add the relation to appointments
   appointments      Appointment[]
@@ -76,4 +78,38 @@ enum AppointmentStatus {
   SCHEDULED
   COMPLETED
   CANCELLED
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  balance   Float    @default(0)
+  doctorId  String   @unique
+  doctor    DoctorApplication @relation(fields: [doctorId], references: [id])
+  transactions Transaction[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  amount      Float
+  type        TransactionType
+  status      TransactionStatus @default(PENDING)
+  description String?
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum TransactionType {
+  CREDIT    // Money added to wallet (e.g., from completed appointments)
+  WITHDRAWAL // Money withdrawn from wallet
+  REFUND    // Money refunded to patient
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }
