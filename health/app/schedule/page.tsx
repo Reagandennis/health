@@ -14,6 +14,10 @@ export default function Schedule() {
   const [selectedDoctor, setSelectedDoctor] = useState<string>("");
   const [appointmentDate, setAppointmentDate] = useState<string>("");
   const [appointmentTime, setAppointmentTime] = useState<string>("");
+  const [patientFirstName, setPatientFirstName] = useState<string>("");
+  const [patientLastName, setPatientLastName] = useState<string>("");
+  const [patientEmail, setPatientEmail] = useState<string>("");
+  const [patientPhone, setPatientPhone] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,12 +26,13 @@ export default function Schedule() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await fetch("/api/admin"); // Ensure this is the correct endpoint
+        const response = await fetch("/api/admin");
         if (!response.ok) {
-          throw new Error("Failed to fetch doctors");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch doctors");
         }
         const data = await response.json();
-        console.log("Doctors Data:", data); // Debugging step
+        console.log("Doctors Data:", data);
 
         // Transform API data to match expected structure
         const transformedData = data.map((doctor: any) => ({
@@ -38,7 +43,8 @@ export default function Schedule() {
 
         setDoctors(transformedData);
       } catch (error) {
-        setError("Error fetching doctors. Please try again.");
+        console.error("Error fetching doctors:", error);
+        setError(error instanceof Error ? error.message : "Error fetching doctors. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -49,47 +55,70 @@ export default function Schedule() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccessMessage("");
 
     try {
-      console.log('Submitting appointment:', {
-        doctorId: selectedDoctor,
-        patientName: "Test Patient", // Replace with actual patient name
-        date: appointmentDate,
-        time: appointmentTime,
-        type: "CONSULTATION",
-        status: "SCHEDULED",
-        notes: notes
+      // First create or get the patient
+      const patientResponse = await fetch("/api/patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: patientFirstName,
+          lastName: patientLastName,
+          email: patientEmail,
+          phone: patientPhone,
+          dateOfBirth: new Date().toISOString(),
+          gender: "Unknown"
+        }),
       });
 
-      const response = await fetch("/api/appointments", {
+      const patientData = await patientResponse.json();
+      console.log("Patient API Response:", patientData);
+      
+      if (!patientResponse.ok) {
+        throw new Error(patientData.error || "Failed to create patient");
+      }
+
+      if (!patientData.id) {
+        throw new Error("Patient ID not received from server");
+      }
+
+      console.log("Patient created/found:", patientData);
+
+      // Then create the appointment with the patient ID
+      const appointmentResponse = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           doctorId: selectedDoctor,
-          patientName: "Test Patient", // Replace with actual patient name
+          patientId: patientData.id,
           date: appointmentDate,
           time: appointmentTime,
-          type: "CONSULTATION",
-          status: "SCHEDULED",
-          notes: notes
+          status: "SCHEDULED"
         }),
       });
 
-      const data = await response.json();
-      console.log('Appointment creation response:', data);
+      const appointmentData = await appointmentResponse.json();
+      console.log('Appointment creation response:', appointmentData);
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to schedule appointment");
+      if (!appointmentResponse.ok) {
+        throw new Error(appointmentData.error || "Failed to schedule appointment");
       }
 
       setSuccessMessage("Your appointment has been scheduled successfully!");
+      // Reset form
       setSelectedDoctor("");
       setAppointmentDate("");
       setAppointmentTime("");
+      setPatientFirstName("");
+      setPatientLastName("");
+      setPatientEmail("");
+      setPatientPhone("");
       setNotes("");
     } catch (error) {
-      console.error('Error creating appointment:', error);
-      setError("Error scheduling appointment. Please try again.");
+      console.error('Error in appointment scheduling:', error);
+      setError(error instanceof Error ? error.message : "Error scheduling appointment. Please try again.");
     }
   };
 
@@ -148,6 +177,60 @@ export default function Schedule() {
           <div className="w-full lg:w-2/3">
             <div className="bg-white shadow-md rounded-lg p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-[#457b9d]">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f] transition duration-300 ease-in-out"
+                      value={patientFirstName}
+                      onChange={(e) => setPatientFirstName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#457b9d]">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f] transition duration-300 ease-in-out"
+                      value={patientLastName}
+                      onChange={(e) => setPatientLastName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#457b9d]">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f] transition duration-300 ease-in-out"
+                      value={patientEmail}
+                      onChange={(e) => setPatientEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#457b9d]">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f] transition duration-300 ease-in-out"
+                      value={patientPhone}
+                      onChange={(e) => setPatientPhone(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-[#457b9d]">
                     Select Date
@@ -174,23 +257,10 @@ export default function Schedule() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#457b9d]">
-                    Additional Notes
-                  </label>
-                  <textarea
-                    className="mt-2 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700 shadow-sm focus:border-[#2a9d8f] focus:ring-[#2a9d8f] transition duration-300 ease-in-out"
-                    rows={5}
-                    placeholder="Enter any special requests or notes..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
-                </div>
-
                 <button
                   type="submit"
                   className="w-full rounded-full bg-[#2a9d8f] text-white px-6 py-3 text-lg font-semibold shadow-md hover:bg-[#249177] transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!selectedDoctor || !appointmentDate || !appointmentTime}
+                  disabled={!selectedDoctor || !appointmentDate || !appointmentTime || !patientFirstName || !patientLastName || !patientEmail}
                 >
                   Schedule Appointment
                 </button>

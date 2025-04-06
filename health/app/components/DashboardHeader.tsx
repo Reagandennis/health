@@ -217,15 +217,15 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                                         target.src = '/default-avatar.png';
                                     }}
                                 />
-                                <button
+                                <div
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setShowUploadMenu(!showUploadMenu);
                                     }}
-                                    className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity upload-button"
+                                    className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity upload-button cursor-pointer"
                                 >
                                     <Upload className="h-3 w-3 text-gray-600" />
-                                </button>
+                                </div>
                             </div>
                             <div className="hidden md:block text-left">
                                 <p className="text-sm font-medium text-gray-700">{user?.name || 'User'}</p>

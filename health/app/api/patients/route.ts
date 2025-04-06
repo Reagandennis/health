@@ -11,13 +11,8 @@ export async function GET() {
     }
 
     const doctor = await prisma.doctorApplication.findFirst({
-      where: {
-        email: session.user.email
-      },
-      select: {
-        id: true,
-        status: true
-      }
+      where: { email: session.user.email },
+      select: { id: true, status: true }
     });
 
     if (!doctor || doctor.status !== "APPROVED") {
@@ -25,17 +20,8 @@ export async function GET() {
     }
 
     const appointments = await prisma.appointment.findMany({
-      where: {
-        doctorId: doctor.id
-      },
+      where: { doctorId: doctor.id },
       include: {
-        doctor: {
-          select: {
-            firstName: true,
-            lastName: true,
-            specialization: true
-          }
-        },
         patient: {
           select: {
             firstName: true,
@@ -50,19 +36,20 @@ export async function GET() {
       }
     });
 
-    const formattedAppointments = appointments.map((appointment) => {
-      return {
-        id: appointment.id,
-        date: appointment.date,
-        status: appointment.status,
-        doctor: appointment.doctor,
-        patientName: appointment.patient
-          ? `${appointment.patient.firstName} ${appointment.patient.lastName}`
-          : "",
-        patientEmail: appointment.patient?.email || "",
-        patientPhone: appointment.patient?.phone || ""
-      };
-    });
+    // Explicitly type each appointment to include patient
+    const formattedAppointments = appointments.map((appointment) => ({
+      id: appointment.id,
+      date: appointment.date,
+      time: appointment.time,
+      status: appointment.status,
+      type: appointment.type,
+      notes: appointment.notes,
+      createdAt: appointment.createdAt,
+      updatedAt: appointment.updatedAt,
+      patientName: `${appointment.patient?.firstName ?? ""} ${appointment.patient?.lastName ?? ""}`,
+      patientEmail: appointment.patient?.email ?? "",
+      patientPhone: appointment.patient?.phone ?? ""
+    }));
 
     return NextResponse.json(formattedAppointments);
   } catch (error) {

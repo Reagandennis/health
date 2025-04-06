@@ -96,7 +96,7 @@ export async function POST(req: Request) {
     }
 
     // Create withdrawal transaction
-    const transaction = await prisma.$transaction.create({
+    const transaction = await prisma.transaction.create({
       data: {
         amount,
         type: 'WITHDRAWAL',
@@ -114,19 +114,22 @@ export async function POST(req: Request) {
         transaction.id
       );
 
-      // Update transaction status
-      await prisma.$transaction.update({
-        where: { id: transaction.id },
-        data: {
-          status: 'COMPLETED',
-          description: `Withdrawal to ${phoneNumber} (M-Pesa Ref: ${mpesaResponse.ConversationID})`,
-        },
-      });
+      // Use transaction to update both the transaction status and wallet balance
+      await prisma.$transaction(async (tx) => {
+        // Update transaction status
+        await tx.transaction.update({
+          where: { id: transaction.id },
+          data: {
+            status: 'COMPLETED',
+            description: `Withdrawal to ${phoneNumber} (M-Pesa Ref: ${mpesaResponse.ConversationID})`,
+          },
+        });
 
-      // Update wallet balance
-      await prisma.wallet.update({
-        where: { id: doctor.wallet.id },
-        data: { balance: { decrement: amount } },
+        // Update wallet balance
+        await tx.wallet.update({
+          where: { id: doctor.wallet!.id }, // Non-null assertion is safe because we check !doctor.wallet on line 87
+          data: { balance: { decrement: amount } },
+        });
       });
 
       return NextResponse.json({
@@ -136,7 +139,7 @@ export async function POST(req: Request) {
       });
     } catch (error) {
       // Update transaction status to failed
-      await prisma.$transaction.update({
+      await prisma.transaction.update({
         where: { id: transaction.id },
         data: { status: 'FAILED' },
       });
