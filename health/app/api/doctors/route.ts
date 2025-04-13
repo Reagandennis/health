@@ -79,18 +79,17 @@ export async function POST(req: NextRequest) {
 }
 
 // GET method to fetch doctor's appointments
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get doctor ID from the authenticated user
+    // Get the doctor's details
     const doctor = await prisma.doctorApplication.findFirst({
       where: {
         email: session.user.email,
-        status: 'APPROVED',
       },
     });
 
@@ -98,20 +97,62 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
     }
 
-    // Fetch appointments for the doctor
+    // Get completed appointments count
+    const completedAppointments = await prisma.appointment.count({
+      where: {
+        doctorId: doctor.id,
+        status: 'COMPLETED',
+      },
+    });
+
+    // Calculate earnings (2000 KES per session)
+    const totalEarnings = completedAppointments * 2000;
+
+    // Get wallet balance (you might want to store this in a separate table)
+    const walletBalance = totalEarnings; // For now, we'll use total earnings as wallet balance
+
+    // Get appointments
     const appointments = await prisma.appointment.findMany({
       where: {
         doctorId: doctor.id,
       },
       orderBy: {
-        date: 'asc',
+        date: 'desc',
       },
+      take: 5, // Limit to 5 most recent appointments
     });
-    return NextResponse.json(appointments);
+
+    // Format the response
+    const formattedDoctor = {
+      id: doctor.id,
+      name: `${doctor.firstName} ${doctor.lastName}`,
+      email: doctor.email,
+      specialization: doctor.specialization,
+      status: doctor.status,
+      createdAt: doctor.createdAt,
+      walletBalance,
+      totalEarnings,
+      completedSessions: completedAppointments,
+    };
+
+    const formattedAppointments = appointments.map(appointment => ({
+      id: appointment.id,
+      patientName: appointment.patientName,
+      date: appointment.date.toISOString().split('T')[0],
+      time: appointment.time,
+      type: appointment.type,
+      status: appointment.status,
+      notes: appointment.notes,
+    }));
+
+    return NextResponse.json({
+      doctor: formattedDoctor,
+      appointments: formattedAppointments,
+    });
   } catch (error) {
-    console.error('Error fetching appointments:', error);
+    console.error('Error fetching doctor data:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch appointments' },
+      { error: 'Failed to fetch doctor data' },
       { status: 500 }
     );
   }
