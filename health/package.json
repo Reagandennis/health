@@ -13,6 +13,7 @@
     "@auth0/nextjs-auth0": "^3.5.0",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
     "lucide-react": "^0.474.0",
     "next": "^15.1.5",
     "react": "^19.0.0",
@@ -22,7 +23,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "^6.6.0",
     "@types/node": "^20.17.16",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -5,8 +5,10 @@ import React from "react";
 
 export default function Home() {
 return (
+    
     <div className="flex flex-col min-h-screen bg-[#f3f7f4] font-[family-name:var(--font-geist-sans)] text-[#1d3557]">
         {/* Main Content */}
+        
         <main className="flex-1 flex flex-col gap-16 items-center sm:items-start text-center sm:text-left px-8 sm:px-20 pt-24">
         {/* Hero Section */}
         <section className="flex flex-col-reverse sm:flex-row items-center sm:items-start gap-6 w-full">
