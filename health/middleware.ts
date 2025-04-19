@@ -1,19 +1,33 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { withMiddlewareAuthRequired } from '@auth0/nextjs-auth0/edge'
 
-export function middleware(req: NextRequest) {
-// Allow all auth-related routes to pass through
-if (req.nextUrl.pathname.startsWith('/api/auth/')) {
+// This function will be wrapped with Auth0's middleware
+async function middleware(req: NextRequest) {
+  // Allow authentication routes to pass through
+  if (req.nextUrl.pathname.startsWith('/api/auth/')) {
     return NextResponse.next()
+  }
+  
+  // Protected API routes - require authentication
+  if (req.nextUrl.pathname.startsWith('/api/') && !req.nextUrl.pathname.startsWith('/api/auth/')) {
+    // Auth0 middleware will handle the authentication check
+    // If user is not authenticated, it will redirect to login
+    return NextResponse.next()
+  }
+  
+  // For non-API routes, simply pass through
+  return NextResponse.next()
 }
 
-// Protected routes logic here if needed
-return NextResponse.next()
-}
+// Wrap the middleware with Auth0's middleware handler
+export default withMiddlewareAuthRequired(middleware)
 
 export const config = {
-matcher: [
-    // Exclude auth routes and static files
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|public/).*)',
-],
+  matcher: [
+    // Only match API routes that need protection
+    '/api/:path*',
+    // Exclude static files and public assets
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+  ],
 }

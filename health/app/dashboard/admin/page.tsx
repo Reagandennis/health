@@ -2,10 +2,14 @@ import { getSession } from '@auth0/nextjs-auth0';
 import React from 'react';
 import { prisma } from '../../../lib/prisma';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
+
 
 export default async function AdminDashboard() {
     const session = await getSession();
-    
+
+
     // Fetch doctor applications grouped by status
     const approvedDoctors = await prisma.doctorApplication.findMany({
         where: { status: 'APPROVED' }
