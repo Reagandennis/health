@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -8,10 +8,52 @@ import Image from 'next/image'
 const Navbar = () => {
   const { user, error, isLoading } = useUser()
   const [isOpen, setIsOpen] = useState(false)
+  const [doctorUser, setDoctorUser] = useState(null)
+
+  // Check for doctor login in localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const doctorData = localStorage.getItem('doctorData')
+      if (doctorData) {
+        try {
+          setDoctorUser(JSON.parse(doctorData))
+        } catch (e) {
+          console.error('Error parsing doctor data:', e)
+        }
+      }
+    }
+  }, [])
 
   const toggleMenu = () => {
     setIsOpen(!isOpen)
   }
+
+  const handleDoctorLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('doctorToken')
+      localStorage.removeItem('doctorData')
+      setDoctorUser(null)
+      window.location.href = '/'
+    }
+  }
+
+  // Determine user role and dashboard link
+  const getDashboardLink = () => {
+    if (doctorUser) {
+      return '/dashboard/doctor'
+    } else if (user) {
+      // Check user roles from Auth0 user object
+      const roles = user['https://echo-health.com/roles'] || []
+      if (roles.includes('admin')) {
+        return '/dashboard/admin'
+      } else {
+        return '/dashboard/user'
+      }
+    }
+    return null
+  }
+
+  const dashboardLink = getDashboardLink()
 
   return (
     <nav className="w-full bg-[#f3f7f4] shadow-sm z-50">
@@ -38,6 +80,13 @@ const Navbar = () => {
             <Link href="/contact" className="text-sm hover:underline text-[#1d3557]">
               Contact
             </Link>
+            
+            {/* Dashboard link if user is logged in */}
+            {dashboardLink && (
+              <Link href={dashboardLink} className="text-sm font-semibold hover:underline text-[#2a9d8f]">
+                Dashboard
+              </Link>
+            )}
           </div>
 
           {/* Right side - Auth buttons/Profile */}
@@ -49,6 +98,37 @@ const Navbar = () => {
               <div className="flex items-center space-x-2">
                 <div className="animate-pulse h-8 w-8 bg-gray-200 rounded-full"></div>
                 <div className="animate-pulse h-4 w-20 bg-gray-200 rounded"></div>
+              </div>
+            ) : doctorUser ? (
+              <div className="relative group">
+                <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+                  <div className="w-8 h-8 bg-[#2a9d8f] rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm">
+                      {doctorUser.firstName?.[0]?.toUpperCase() || 'D'}
+                    </span>
+                  </div>
+                  <span>{doctorUser.firstName} {doctorUser.lastName}</span>
+                </button>
+                <div className="absolute right-0 w-48 mt-2 py-2 bg-white rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                  <Link
+                    href="/dashboard/doctor"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Doctor Dashboard
+                  </Link>
+                  <Link
+                    href="/doctor/change-password"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Change Password
+                  </Link>
+                  <button
+                    onClick={handleDoctorLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
             ) : user ? (
               <div className="relative group">
@@ -75,6 +155,14 @@ const Navbar = () => {
                   <span>{user.name}</span>
                 </button>
                 <div className="absolute right-0 w-48 mt-2 py-2 bg-white rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                  {dashboardLink && (
+                    <Link
+                      href={dashboardLink}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </Link>
+                  )}
                   <Link
                     href="/api/auth/logout"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -84,12 +172,20 @@ const Navbar = () => {
                 </div>
               </div>
             ) : (
-              <Link
-                href="/api/auth/login"
-                className="rounded-full bg-[#2a9d8f] text-[#f3f7f4] px-8 py-3 text-base font-semibold hover:bg-[#249177] transition-colors"
-              >
-                Login
-              </Link>
+              <div className="flex space-x-2">
+                <Link
+                  href="/api/auth/login"
+                  className="rounded-full bg-[#2a9d8f] text-[#f3f7f4] px-6 py-2 text-base font-semibold hover:bg-[#249177] transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/doctor/login"
+                  className="rounded-full bg-[#457b9d] text-[#f3f7f4] px-6 py-2 text-base font-semibold hover:bg-[#3d6e8d] transition-colors"
+                >
+                  Doctor Login
+                </Link>
+              </div>
             )}
           </div>
 
@@ -126,18 +222,26 @@ const Navbar = () => {
       {/* Mobile menu */}
       <div className={`${isOpen ? 'block' : 'hidden'} sm:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
-          <a href="/services" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
+          <Link href="/services" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
             Services
-          </a>
+          </Link>
           <Link href="/schedule" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
             Schedule
           </Link>
           <Link href="/doctors" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
             Be a Doctor
           </Link>
-          <a href="#contact" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
+          <Link href="/contact" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
             Contact
-          </a>
+          </Link>
+          
+          {/* Dashboard link if user is logged in */}
+          {dashboardLink && (
+            <Link href={dashboardLink} className="block px-3 py-2 font-semibold text-[#2a9d8f] hover:bg-gray-100">
+              Dashboard
+            </Link>
+          )}
+          
           {error && (
             <div className="px-3 py-2 text-red-500">Authentication Error</div>
           )}
@@ -145,6 +249,30 @@ const Navbar = () => {
             <div className="px-3 py-2">
               <div className="animate-pulse h-4 w-20 bg-gray-200 rounded"></div>
             </div>
+          ) : doctorUser ? (
+            <>
+              <div className="px-3 py-2 text-gray-600">
+                Signed in as: {doctorUser.firstName} {doctorUser.lastName}
+              </div>
+              <Link
+                href="/dashboard/doctor"
+                className="block px-3 py-2 text-gray-600 hover:bg-gray-100"
+              >
+                Doctor Dashboard
+              </Link>
+              <Link
+                href="/doctor/change-password"
+                className="block px-3 py-2 text-gray-600 hover:bg-gray-100"
+              >
+                Change Password
+              </Link>
+              <button
+                onClick={handleDoctorLogout}
+                className="block w-full text-left px-3 py-2 text-gray-600 hover:bg-gray-100"
+              >
+                Logout
+              </button>
+            </>
           ) : user ? (
             <>
               <div className="px-3 py-2 text-gray-600">
@@ -158,12 +286,20 @@ const Navbar = () => {
               </Link>
             </>
           ) : (
-            <Link
-              href="/api/auth/login"
-              className="block px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            >
-              Login
-            </Link>
+            <>
+              <Link
+                href="/api/auth/login"
+                className="block px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                Login
+              </Link>
+              <Link
+                href="/doctor/login"
+                className="block px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                Doctor Login
+              </Link>
+            </>
           )}
         </div>
       </div>
