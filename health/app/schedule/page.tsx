@@ -5,9 +5,10 @@ import React, { useState, useEffect } from "react";
 export default function Schedule() {
   interface Doctor {
     id: string;
-    name: string;
-    specialty: string;
-    availability?: string[];
+    firstName: string;
+    lastName: string;
+    specialization: string;
+    email: string;
   }
 
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -26,25 +27,31 @@ export default function Schedule() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await fetch("/api/admin");
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch("/api/approved-doctors");
+        
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || "Failed to fetch doctors");
         }
+        
         const data = await response.json();
         console.log("Doctors Data:", data);
 
-        // Transform API data to match expected structure
-        const transformedData = data.map((doctor: any) => ({
-          id: doctor.id,
-          name: `${doctor.firstName} ${doctor.lastName}`,
-          specialty: doctor.specialization,
-        }));
-
-        setDoctors(transformedData);
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setDoctors(data);
+        } else {
+          console.error("Expected array of doctors but received:", data);
+          setDoctors([]);
+          setError("Invalid data format received from server");
+        }
       } catch (error) {
         console.error("Error fetching doctors:", error);
         setError(error instanceof Error ? error.message : "Error fetching doctors. Please try again.");
+        setDoctors([]); // Ensure doctors is always an array
       } finally {
         setLoading(false);
       }
@@ -139,6 +146,12 @@ export default function Schedule() {
           </div>
         )}
 
+        {error && (
+          <div className="mb-4 p-4 bg-red-200 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
+
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="w-full lg:w-1/3">
             <div className="bg-white shadow rounded-lg p-6">
@@ -146,12 +159,12 @@ export default function Schedule() {
                 Select a Doctor
               </h2>
               {loading ? (
-                <p>Loading doctors...</p>
-              ) : error ? (
-                <p className="text-red-500">{error}</p>
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#2a9d8f]"></div>
+                </div>
               ) : (
                 <div className="space-y-4">
-                  {doctors.length > 0 ? (
+                  {doctors && doctors.length > 0 ? (
                     doctors.map((doctor) => (
                       <div
                         key={doctor.id}
@@ -162,8 +175,8 @@ export default function Schedule() {
                         }`}
                         onClick={() => setSelectedDoctor(doctor.id)}
                       >
-                        <h3 className="font-medium">{doctor.name}</h3>
-                        <p className="text-sm opacity-90">{doctor.specialty}</p>
+                        <h3 className="font-medium">{doctor.firstName} {doctor.lastName}</h3>
+                        <p className="text-sm opacity-90">{doctor.specialization}</p>
                       </div>
                     ))
                   ) : (
