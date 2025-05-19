@@ -69,15 +69,9 @@ const nextConfig = {
           },
         ],
       },
-    ];
-  },
-  
-  // Add CORS configuration
-  async rewrites() {
-    return [
+      // Add CORS headers for API routes
       {
         source: '/api/:path*',
-        destination: '/api/:path*',
         headers: [
           {
             key: 'Access-Control-Allow-Credentials',
@@ -96,6 +90,16 @@ const nextConfig = {
             value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization',
           },
         ],
+      },
+    ];
+  },
+  
+  // Fix rewrites configuration by removing headers
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
       },
     ];
   },
