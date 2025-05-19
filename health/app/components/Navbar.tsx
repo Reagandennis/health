@@ -5,6 +5,7 @@ import { useUser } from '@auth0/nextjs-auth0/client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import React from 'react'
 
 const Navbar = () => {
   const { user, error, isLoading } = useUser()

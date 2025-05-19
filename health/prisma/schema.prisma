@@ -1,41 +1,21 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL") // Make sure DATABASE_URL is set in your .env file
 }
 
-model DoctorApplication {
-  id                String                @id @default(cuid())
-  firstName         String
-  lastName          String
-  email             String                @unique
-  phone             String
-  dateOfBirth       DateTime
-  address           String
-  licenseNumber     String                @unique
-  specialization    MedicalSpecialization
-  yearsOfExperience Int
-  education         String
-  currentWorkplace  String?
-  bio               String
-  credentials       Json?
-  status            ApplicationStatus     @default(PENDING)
-  notes             String?
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
-  reviewedAt        DateTime?
-  reviewedBy        String?
-  completedSessions Int?   // Add the completedSessions field
+// --- Enums ---
 
-  // Add the relation to appointments
-  appointments      Appointment[]
-
-  @@map("doctor_applications")
+enum UserRole {
+  PATIENT
+  DOCTOR
+  ADMIN
 }
-
 
 enum ApplicationStatus {
   PENDING
@@ -55,27 +35,88 @@ enum MedicalSpecialization {
   OTHER
 }
 
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+
+// --- Models ---
+
+model User {
+  id        String   @id @default(cuid())
+  auth0Sub  String   @unique // Stores the unique Auth0 User ID (session.user.sub)
+  email     String   @unique
+  name      String?            // Optional: Can sync from Auth0 profile
+  role      UserRole @default(PATIENT) // Default role for new users
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation: A user can have one doctor application (optional)
+  doctorApplication DoctorApplication?
+  hasSelectedRole Boolean @default(false) // <-- ADD THIS LINE
+
+  // Relation: A user (as a patient) can have many appointments
+  patientAppointments Appointment[] @relation("PatientAppointments")
+
+  @@map("users") // Optional: explicitly name the table 'users'
+}
+
+model DoctorApplication {
+  id                String                @id @default(cuid())
+  firstName         String
+  lastName          String
+  email             String                @unique // Keep for application context, but link to User
+  phone             String
+  dateOfBirth       DateTime
+  address           String
+  licenseNumber     String                @unique
+  specialization    MedicalSpecialization
+  yearsOfExperience Int
+  education         String
+  currentWorkplace  String?
+  bio               String
+  credentials       Json?
+  status            ApplicationStatus     @default(PENDING)
+  notes             String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  reviewedAt        DateTime?
+  reviewedBy        String?               // Consider linking this to an Admin User ID later
+  completedSessions Int?                @default(0)
+
+  // Relation to the User who submitted this application (One-to-One)
+  userId            String?   @unique     // Foreign key to User table, must be unique for 1-to-1
+  user              User?                 @relation(fields: [userId], references: [id])
+
+  // Relation to appointments this doctor handles (One-to-Many)
+  appointments      Appointment[]         @relation("DoctorAppointments")
+
+  @@map("doctor_applications")
+  @@index([userId]) // Index remains useful even with unique constraint
+}
+
 model Appointment {
-  id          String   @id @default(cuid())
-  patientName String
+  id          String            @id @default(cuid())
+  patientName String            // Could potentially be derived from related patient User later
   date        DateTime
   time        String
   type        String
   status      AppointmentStatus
   notes       String?
-  doctorId    String
-  patientId   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  doctorId    String            // Foreign key to DoctorApplication
+  patientId   String?           // Foreign key to User (as patient)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
-  // Add the relation to DoctorApplication
-  doctor      DoctorApplication @relation(fields: [doctorId], references: [id])
+  // Relation to the Doctor (via DoctorApplication)
+  doctor      DoctorApplication @relation("DoctorAppointments", fields: [doctorId], references: [id])
+
+  // Relation to the Patient (via User)
+  patient     User?             @relation("PatientAppointments", fields: [patientId], references: [id])
 
   @@map("appointments")
-}
-
-enum AppointmentStatus {
-  SCHEDULED
-  COMPLETED
-  CANCELLED
+  @@index([doctorId])
+  @@index([patientId])
 }

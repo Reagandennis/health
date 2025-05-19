@@ -5,12 +5,12 @@ return (
     <footer id="contact" className="w-full flex flex-col sm:flex-row gap-8 items-center justify-between px-6 sm:px-20 bg-[#2a9d8f] text-[#f3f7f4] py-6 text-center sm:text-left">
     <div>
         <h4 className="text-lg font-semibold">Contact Us</h4>
-        <p>Email: <a href="mailto:info@psychologyservices.com" className="underline">info@psychologyservices.com</a></p>
-        <p>Phone: <a href="tel:+1234567890" className="underline">+1 (234) 567-890</a></p>
+        <p>Email: <a href="mailto:support@echopsychology.com" className="underline">support@echopsychology.com</a></p>
+        <p>Phone: <a href="tel:+1234567890" className="underline">(+254) 710652097</a></p>
     </div>
     <div>
         <h4 className="text-lg font-semibold">Visit Us</h4>
-        <p>123 Wellness Way<br />Suite 100<br />Your City, State, ZIP</p>
+        <p>South B<br />Kenya<br />Nairobi, 01000</p>
         <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="underline">Find us on Google Maps</a>
     </div>
     <div>

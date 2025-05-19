@@ -6,19 +6,19 @@ import { toast } from 'sonner';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 interface DoctorFormData {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    dateOfBirth: string;
-    address: string;
-    licenseNumber: string;
-    specialization: string;
-    yearsOfExperience: number;
-    education: string;
-    bio: string;
-    currentWorkplace?: string;
-    credentials: string | null;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  address: string;
+  licenseNumber: string;
+  specialization: string;
+  yearsOfExperience: number;
+  education: string;
+  bio: string;
+  currentWorkplace?: string;
+  credentials: string | null;
 }
 
 export default function DoctorRegistration() {
@@ -30,7 +30,7 @@ export default function DoctorRegistration() {
     dateOfBirth: '',
     address: '',
     licenseNumber: '',
-    specialization: 'PSYCHOLOGY', // Default value
+    specialization: 'PSYCHOLOGY',
     yearsOfExperience: 0,
     education: '',
     bio: '',
@@ -61,21 +61,17 @@ export default function DoctorRegistration() {
       const responseData = await response.json();
 
       if (!response.ok) {
-        // Extract error message properly from responseData
-        const errorMessage = responseData.error || 
-                            (typeof responseData.message === 'string' ? responseData.message : 'Submission failed');
+        const errorMessage = responseData.error || responseData.message || 'Submission failed';
         throw new Error(errorMessage);
       }
 
       toast.success('Application submitted successfully!');
       setShowSuccessMessage(true);
 
-      // Wait for 3 seconds then redirect
       setTimeout(() => {
         router.push('/dashboard/doctor');
       }, 3000);
 
-      // Reset form
       setFormData({
         firstName: '',
         lastName: '',
@@ -92,16 +88,8 @@ export default function DoctorRegistration() {
         credentials: null,
       });
     } catch (error) {
-      console.error('Submission Error:', error);
-      
-      // Improved error handling
       if (error instanceof Error) {
         toast.error(error.message);
-      } else if (typeof error === 'object' && error !== null) {
-        // Handle potential JSON or other object errors
-        const errorObj = error as Record<string, any>;
-        const errorMessage = errorObj.message || errorObj.error || JSON.stringify(error);
-        toast.error(typeof errorMessage === 'string' ? errorMessage : 'An error occurred with your submission');
       } else {
         toast.error('An unknown error occurred');
       }
@@ -117,7 +105,7 @@ export default function DoctorRegistration() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       {loading && <LoadingSpinner />}
-      
+
       <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg border border-gray-200 pt-16">
         <h1 className="text-4xl font-extrabold text-teal-600 mb-6 text-center">Doctor Application</h1>
 
@@ -129,66 +117,28 @@ export default function DoctorRegistration() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="flex flex-col">
-              <input
-                type="text"
-                placeholder="First Name"
-                value={formData.firstName}
-                onChange={(e) => updateFormData('firstName', e.target.value)}
-                required
-                className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-              />
-            </div>
-            <div className="flex flex-col">
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={formData.lastName}
-                onChange={(e) => updateFormData('lastName', e.target.value)}
-                required
-                className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-              />
-            </div>
-            <div className="flex flex-col">
-              <input
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={(e) => updateFormData('email', e.target.value)}
-                required
-                className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-              />
-            </div>
-            <div className="flex flex-col">
-              <input
-                type="tel"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={(e) => updateFormData('phone', e.target.value)}
-                required
-                className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-              />
-            </div>
-            <div className="flex flex-col">
-              <input
-                type="date"
-                placeholder="Date of Birth"
-                value={formData.dateOfBirth}
-                onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
-                required
-                className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-              />
-            </div>
-            <div className="flex flex-col">
-              <input
-                type="text"
-                placeholder="License Number"
-                value={formData.licenseNumber}
-                onChange={(e) => updateFormData('licenseNumber', e.target.value)}
-                required
-                className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-              />
-            </div>
+            {[
+              ['First Name', 'firstName'],
+              ['Last Name', 'lastName'],
+              ['Email', 'email'],
+              ['Phone Number', 'phone'],
+              ['Date of Birth', 'dateOfBirth', 'date'],
+              ['License Number', 'licenseNumber'],
+              ['Address', 'address'],
+              ['Current Workplace', 'currentWorkplace'],
+            ].map(([label, key, type = 'text']) => (
+              <div key={key} className="flex flex-col">
+                <input
+                  type={type}
+                  placeholder={label as string}
+                  value={formData[key as keyof DoctorFormData] as string}
+                  onChange={(e) => updateFormData(key as keyof DoctorFormData, e.target.value)}
+                  required={key !== 'currentWorkplace'}
+                  className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
+                />
+              </div>
+            ))}
+
             <div className="flex flex-col">
               <select
                 value={formData.specialization}
@@ -206,6 +156,7 @@ export default function DoctorRegistration() {
                 <option value="OTHER">Other</option>
               </select>
             </div>
+
             <div className="flex flex-col">
               <input
                 type="number"
@@ -213,25 +164,6 @@ export default function DoctorRegistration() {
                 value={formData.yearsOfExperience}
                 onChange={(e) => updateFormData('yearsOfExperience', Number(e.target.value))}
                 required
-                className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-              />
-            </div>
-            <div className="flex flex-col">
-              <input
-                type="text"
-                placeholder="Address"
-                value={formData.address}
-                onChange={(e) => updateFormData('address', e.target.value)}
-                required
-                className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-              />
-            </div>
-            <div className="flex flex-col">
-              <input
-                type="text"
-                placeholder="Current Workplace"
-                value={formData.currentWorkplace}
-                onChange={(e) => updateFormData('currentWorkplace', e.target.value)}
                 className="input p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
               />
             </div>
