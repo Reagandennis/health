@@ -1,72 +1,51 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getSession } from "@auth0/nextjs-auth0";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+// Mock appointments data storage (in-memory for demo purposes)
+let appointments = [];
+
+export async function POST(request: NextRequest) {
+  try {
+    // Parse the request body
+    const body = await request.json();
+    
+    // Validate required fields
+    if (!body.doctorId || !body.patientId || !body.date || !body.time) {
+      return NextResponse.json(
+        { error: 'Doctor ID, patient ID, date, and time are required' },
+        { status: 400 }
+      );
+    }
+    
+    // Create new appointment
+    const newAppointment = {
+      id: `appointment${appointments.length + 1}`,
+      doctorId: body.doctorId,
+      patientId: body.patientId,
+      date: body.date,
+      time: body.time,
+      status: body.status || 'SCHEDULED',
+      notes: body.notes || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Add to mock database
+    appointments.push(newAppointment);
+    console.log('Created new appointment:', newAppointment);
+    
+    // Return the new appointment
+    return NextResponse.json(newAppointment);
+  } catch (error) {
+    console.error('Error in appointments API:', error);
+    return NextResponse.json(
+      { error: 'Failed to process appointment data' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function GET() {
-  try {
-    const session = await getSession();
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const doctor = await prisma.doctorApplication.findFirst({
-      where: {
-        email: session.user.email
-      },
-      select: {
-        id: true,
-        status: true
-      }
-    });
-
-    if (!doctor || doctor.status !== "APPROVED") {
-      return NextResponse.json({ error: "Unauthorized doctor" }, { status: 403 });
-    }
-
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        doctorId: doctor.id
-      },
-      include: {
-        doctor: {
-          select: {
-            firstName: true,
-            lastName: true,
-            specialization: true
-          }
-        },
-        patient: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true
-          }
-        }
-      },
-      orderBy: {
-        date: "asc"
-      }
-    });
-
-    const formattedAppointments = appointments.map((appointment) => {
-      return {
-        id: appointment.id,
-        date: appointment.date,
-        status: appointment.status,
-        doctor: appointment.doctor,
-        patientName: appointment.patient
-          ? `${appointment.patient.firstName} ${appointment.patient.lastName}`
-          : "",
-        patientEmail: appointment.patient?.email || "",
-        patientPhone: appointment.patient?.phone || ""
-      };
-    });
-
-    return NextResponse.json(formattedAppointments);
-  } catch (error) {
-    console.error("Error fetching appointments:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
+  // Return all appointments
+  return NextResponse.json(appointments);
 }
