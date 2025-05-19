@@ -22,6 +22,9 @@ export async function middleware(req: NextRequest) {
         loginUrl.searchParams.set('returnTo', req.nextUrl.pathname);
         return NextResponse.redirect(loginUrl);
       }
+
+      // Allow access to continue if cookie is present
+      return NextResponse.next();
     } catch (error) {
       console.error('Auth middleware error:', error);
       // Redirect to login on error
