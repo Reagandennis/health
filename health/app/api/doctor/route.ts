@@ -57,7 +57,7 @@ const mockAppointments = [
     notes: 'Follow-up session'
   },
   {
-    id: 'app2',
+  w  id: 'app2',
     doctorId: 'doc1',
     patientId: 'pat2',
     date: '2025-05-26',
