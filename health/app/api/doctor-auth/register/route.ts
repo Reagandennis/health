@@ -6,6 +6,9 @@ import crypto from 'crypto';
 // In-memory storage for doctor credentials (in a real app, this would be in a database)
 let doctorCredentials = [];
 
+// Export for use in other routes
+export { doctorCredentials };
+
 // Generate a random temporary password
 function generateTemporaryPassword(length = 8) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -55,6 +58,9 @@ export async function POST(request: NextRequest) {
       firstName: body.firstName || '',
       lastName: body.lastName || '',
       tempPassword: true, // Flag to indicate this is a temporary password
+      approved: false, // Default to not approved - requires admin approval
+      specialty: body.specialty || '',
+      qualifications: body.qualifications || '',
       createdAt: new Date().toISOString()
     };
     

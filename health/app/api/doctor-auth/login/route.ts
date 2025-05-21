@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import crypto from 'crypto';
 
-// In-memory storage for doctor credentials (in a real app, this would be in a database)
-// This should be imported from a shared module in a real application
-let doctorCredentials = [];
+// Import doctor credentials from register route
+import { doctorCredentials } from '../register/route';
 
 // Simple hash function for passwords (in a real app, use bcrypt or similar)
 function hashPassword(password) {
@@ -39,6 +38,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
+      );
+    }
+    
+    // Check if doctor is approved by admin
+    if (!doctor.approved) {
+      return NextResponse.json(
+        { error: 'Your account is pending approval by an administrator. Please check back later.' },
+        { status: 403 }
       );
     }
     

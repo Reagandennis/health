@@ -1,45 +1,40 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { getSession } from '@auth0/nextjs-auth0';
+import { NextRequest, NextResponse } from 'next/server';
+import { doctorCredentials } from './app/api/doctor-auth/register/route';
 
-export async function middleware(req: NextRequest) {
-  // Allow all auth-related routes to pass through
-  if (req.nextUrl.pathname.startsWith('/api/auth/')) {
+// Middleware to check authentication and authorization
+export function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  
+  // Doctor dashboard access check
+  if (path.startsWith('/dashboard/doctor')) {
+    // Get doctor token from cookies
+    const doctorToken = request.cookies.get('doctorToken')?.value;
+    
+    // If no token, redirect to login
+    if (!doctorToken) {
+      return NextResponse.redirect(new URL('/doctor/login', request.url));
+    }
+    
+    // In a real app, verify the token and get doctor ID
+    // For demo, we'll just check if any approved doctor exists
+    const approvedDoctor = doctorCredentials.find(d => d.approved === true);
+    
+    // If no approved doctor or token doesn't match, redirect to login
+    if (!approvedDoctor) {
+      return NextResponse.redirect(new URL('/doctor/login', request.url));
+    }
+    
+    // Allow access to dashboard
     return NextResponse.next();
   }
-
-  // Protected dashboard routes
-  if (req.nextUrl.pathname.startsWith('/dashboard/')) {
-    try {
-      // We can't directly use getSession in middleware due to Edge Runtime limitations
-      // Instead, we check for the presence of the auth cookie
-      const authCookie = req.cookies.get('appSession');
-      
-      if (!authCookie) {
-        // Redirect to login if no auth cookie is found
-        const loginUrl = new URL('/api/auth/login', req.url);
-        // Add the current URL as a return_to parameter
-        loginUrl.searchParams.set('returnTo', req.nextUrl.pathname);
-        return NextResponse.redirect(loginUrl);
-      }
-
-      // Allow access to continue if cookie is present
-      return NextResponse.next();
-    } catch (error) {
-      console.error('Auth middleware error:', error);
-      // Redirect to login on error
-      return NextResponse.redirect(new URL('/api/auth/login', req.url));
-    }
-  }
-
+  
+  // Continue for other routes
   return NextResponse.next();
 }
 
+// Configure which paths the middleware runs on
 export const config = {
   matcher: [
-    // Protected dashboard routes
-    '/dashboard/:path*',
-    // Auth routes
-    '/api/auth/:path*'
+    '/dashboard/doctor/:path*',
   ],
-}
+};
