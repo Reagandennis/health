@@ -9,16 +9,28 @@ const Navbar = () => {
   const { user, error, isLoading } = useUser()
   const [isOpen, setIsOpen] = useState(false)
   const [doctorUser, setDoctorUser] = useState(null)
+  const [adminUser, setAdminUser] = useState(null)
 
-  // Check for doctor login in localStorage
+  // Check for doctor and admin login in localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Check for doctor login
       const doctorData = localStorage.getItem('doctorData')
       if (doctorData) {
         try {
           setDoctorUser(JSON.parse(doctorData))
         } catch (e) {
           console.error('Error parsing doctor data:', e)
+        }
+      }
+      
+      // Check for admin login
+      const adminData = localStorage.getItem('adminData')
+      if (adminData) {
+        try {
+          setAdminUser(JSON.parse(adminData))
+        } catch (e) {
+          console.error('Error parsing admin data:', e)
         }
       }
     }
@@ -37,23 +49,40 @@ const Navbar = () => {
     }
   }
 
-  // Determine user role and dashboard link
-  const getDashboardLink = () => {
-    if (doctorUser) {
-      return '/dashboard/doctor'
-    } else if (user) {
-      // Check user roles from Auth0 user object
-      const roles = user['https://echo-health.com/roles'] || []
-      if (roles.includes('admin')) {
-        return '/dashboard/admin'
-      } else {
-        return '/dashboard/user'
-      }
+  const handleAdminLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('adminToken')
+      localStorage.removeItem('adminData')
+      setAdminUser(null)
+      window.location.href = '/'
+    }
+  }
+
+  // Determine user role and dashboard links
+  const getUserDashboardLink = () => {
+    if (user) {
+      return '/dashboard/user'
     }
     return null
   }
 
-  const dashboardLink = getDashboardLink()
+  const getDoctorDashboardLink = () => {
+    if (doctorUser) {
+      return '/dashboard/doctor'
+    }
+    return null
+  }
+
+  const getAdminDashboardLink = () => {
+    if (adminUser) {
+      return '/dashboard/admin'
+    }
+    return null
+  }
+
+  const userDashboardLink = getUserDashboardLink()
+  const doctorDashboardLink = getDoctorDashboardLink()
+  const adminDashboardLink = getAdminDashboardLink()
 
   return (
     <nav className="w-full bg-[#f3f7f4] shadow-sm z-50">
@@ -81,10 +110,22 @@ const Navbar = () => {
               Contact
             </Link>
             
-            {/* Dashboard link if user is logged in */}
-            {dashboardLink && (
-              <Link href={dashboardLink} className="text-sm font-semibold hover:underline text-[#2a9d8f]">
-                Dashboard
+            {/* Dashboard links for different roles */}
+            {userDashboardLink && (
+              <Link href={userDashboardLink} className="text-sm font-semibold hover:underline text-[#2a9d8f]">
+                User Dashboard
+              </Link>
+            )}
+            
+            {doctorDashboardLink && (
+              <Link href={doctorDashboardLink} className="text-sm font-semibold hover:underline text-[#2a9d8f]">
+                Doctor Dashboard
+              </Link>
+            )}
+            
+            {adminDashboardLink && (
+              <Link href={adminDashboardLink} className="text-sm font-semibold hover:underline text-[#2a9d8f]">
+                Admin Dashboard
               </Link>
             )}
           </div>
@@ -98,6 +139,35 @@ const Navbar = () => {
               <div className="flex items-center space-x-2">
                 <div className="animate-pulse h-8 w-8 bg-gray-200 rounded-full"></div>
                 <div className="animate-pulse h-4 w-20 bg-gray-200 rounded"></div>
+              </div>
+            ) : adminUser ? (
+              <div className="relative group">
+                <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+                  <div className="w-8 h-8 bg-[#e63946] rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm">A</span>
+                  </div>
+                  <span>Admin</span>
+                </button>
+                <div className="absolute right-0 w-48 mt-2 py-2 bg-white rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                  <Link
+                    href="/dashboard/admin"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Admin Dashboard
+                  </Link>
+                  <Link
+                    href="/admin/change-credentials"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Change Credentials
+                  </Link>
+                  <button
+                    onClick={handleAdminLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
             ) : doctorUser ? (
               <div className="relative group">
@@ -155,14 +225,12 @@ const Navbar = () => {
                   <span>{user.name}</span>
                 </button>
                 <div className="absolute right-0 w-48 mt-2 py-2 bg-white rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                  {dashboardLink && (
-                    <Link
-                      href={dashboardLink}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Dashboard
-                    </Link>
-                  )}
+                  <Link
+                    href="/dashboard/user"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    User Dashboard
+                  </Link>
                   <Link
                     href="/api/auth/logout"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -184,6 +252,12 @@ const Navbar = () => {
                   className="rounded-full bg-[#457b9d] text-[#f3f7f4] px-6 py-2 text-base font-semibold hover:bg-[#3d6e8d] transition-colors"
                 >
                   Doctor Login
+                </Link>
+                <Link
+                  href="/admin/login"
+                  className="rounded-full bg-[#e63946] text-[#f3f7f4] px-6 py-2 text-base font-semibold hover:bg-[#d62c39] transition-colors"
+                >
+                  Admin Login
                 </Link>
               </div>
             )}
@@ -235,10 +309,22 @@ const Navbar = () => {
             Contact
           </Link>
           
-          {/* Dashboard link if user is logged in */}
-          {dashboardLink && (
-            <Link href={dashboardLink} className="block px-3 py-2 font-semibold text-[#2a9d8f] hover:bg-gray-100">
-              Dashboard
+          {/* Dashboard links for different roles */}
+          {userDashboardLink && (
+            <Link href={userDashboardLink} className="block px-3 py-2 font-semibold text-[#2a9d8f] hover:bg-gray-100">
+              User Dashboard
+            </Link>
+          )}
+          
+          {doctorDashboardLink && (
+            <Link href={doctorDashboardLink} className="block px-3 py-2 font-semibold text-[#2a9d8f] hover:bg-gray-100">
+              Doctor Dashboard
+            </Link>
+          )}
+          
+          {adminDashboardLink && (
+            <Link href={adminDashboardLink} className="block px-3 py-2 font-semibold text-[#e63946] hover:bg-gray-100">
+              Admin Dashboard
             </Link>
           )}
           
@@ -249,6 +335,30 @@ const Navbar = () => {
             <div className="px-3 py-2">
               <div className="animate-pulse h-4 w-20 bg-gray-200 rounded"></div>
             </div>
+          ) : adminUser ? (
+            <>
+              <div className="px-3 py-2 text-gray-600">
+                Signed in as: Admin
+              </div>
+              <Link
+                href="/dashboard/admin"
+                className="block px-3 py-2 text-gray-600 hover:bg-gray-100"
+              >
+                Admin Dashboard
+              </Link>
+              <Link
+                href="/admin/change-credentials"
+                className="block px-3 py-2 text-gray-600 hover:bg-gray-100"
+              >
+                Change Credentials
+              </Link>
+              <button
+                onClick={handleAdminLogout}
+                className="block w-full text-left px-3 py-2 text-gray-600 hover:bg-gray-100"
+              >
+                Logout
+              </button>
+            </>
           ) : doctorUser ? (
             <>
               <div className="px-3 py-2 text-gray-600">
@@ -279,6 +389,12 @@ const Navbar = () => {
                 Signed in as: {user.name || 'User'}
               </div>
               <Link
+                href="/dashboard/user"
+                className="block px-3 py-2 text-gray-600 hover:bg-gray-100"
+              >
+                User Dashboard
+              </Link>
+              <Link
                 href="/api/auth/logout"
                 className="block px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
@@ -298,6 +414,12 @@ const Navbar = () => {
                 className="block px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
                 Doctor Login
+              </Link>
+              <Link
+                href="/admin/login"
+                className="block px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                Admin Login
               </Link>
             </>
           )}
