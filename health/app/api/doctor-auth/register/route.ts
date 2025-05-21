@@ -4,7 +4,48 @@ import { z } from 'zod';
 import crypto from 'crypto';
 
 // In-memory storage for doctor credentials (in a real app, this would be in a database)
-let doctorCredentials = [];
+let doctorCredentials = [
+  // Mock doctor applications for demonstration purposes
+  {
+    id: 'doc1',
+    email: 'john.smith@example.com',
+    passwordHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', // password: 'password'
+    firstName: 'John',
+    lastName: 'Smith',
+    tempPassword: false,
+    approved: false,
+    specialty: 'Psychiatry',
+    qualifications: 'MD, PhD in Clinical Psychology',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days ago
+  },
+  {
+    id: 'doc2',
+    email: 'sarah.johnson@example.com',
+    passwordHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', // password: 'password'
+    firstName: 'Sarah',
+    lastName: 'Johnson',
+    tempPassword: false,
+    approved: true,
+    specialty: 'Child Psychology',
+    qualifications: 'PsyD, Certified Child Specialist',
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
+    reviewedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() // 10 days ago
+  },
+  {
+    id: 'doc3',
+    email: 'michael.williams@example.com',
+    passwordHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', // password: 'password'
+    firstName: 'Michael',
+    lastName: 'Williams',
+    tempPassword: false,
+    approved: false,
+    specialty: 'Behavioral Therapy',
+    qualifications: 'MA in Psychology, Certified Behavioral Therapist',
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    reviewedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    notes: 'Missing certification documentation'
+  }
+];
 
 // Export for use in other routes
 export { doctorCredentials };
