@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useUser } from '@auth0/nextjs-auth0/client'
 import Link from 'next/link'
 import Image from 'next/image'
+import React from 'react'
 
 const Navbar = () => {
   const { user, error, isLoading } = useUser()
@@ -294,7 +295,7 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-      </di          {/* Mobile menu */}
+        </div>         {/* Mobile menu */}
       <div className={`${isOpen ? 'block' : 'hidden'} sm:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link href="/services" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
