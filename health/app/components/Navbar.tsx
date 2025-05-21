@@ -106,6 +106,9 @@ const Navbar = () => {
             <Link href="/doctors" className="text-sm hover:underline text-[#1d3557]">
               Be a Doctor
             </Link>
+            <Link href="/doctor/login" className="text-sm font-medium hover:underline text-[#2a9d8f]">
+              Doctor Login
+            </Link>
             <Link href="/contact" className="text-sm hover:underline text-[#1d3557]">
               Contact
             </Link>
@@ -291,9 +294,7 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Mobile menu */}
+      </di          {/* Mobile menu */}
       <div className={`${isOpen ? 'block' : 'hidden'} sm:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link href="/services" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
@@ -304,6 +305,9 @@ const Navbar = () => {
           </Link>
           <Link href="/doctors" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
             Be a Doctor
+          </Link>
+          <Link href="/doctor/login" className="block px-3 py-2 font-medium text-[#2a9d8f] hover:bg-gray-100">
+            Doctor Login
           </Link>
           <Link href="/contact" className="block px-3 py-2 text-[#1d3557] hover:bg-gray-100">
             Contact
