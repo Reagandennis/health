@@ -7,6 +7,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionInProgress, setActionInProgress] = useState(false);
+  const [resetPasswordData, setResetPasswordData] = useState(null);
   const router = useRouter();
 
   // Fetch all doctors
@@ -63,6 +64,42 @@ export default function AdminDashboard() {
     }
   };
 
+  // Handle password reset
+  const handlePasswordReset = async (doctorId) => {
+    setActionInProgress(true);
+    setResetPasswordData(null);
+    try {
+      const response = await fetch('/api/admin/doctors/credentials', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ doctorId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reset password');
+      }
+
+      const data = await response.json();
+      setResetPasswordData({
+        doctorId,
+        tempPassword: data.tempPassword,
+        doctorName: doctors.find(d => d.id === doctorId)?.firstName + ' ' + doctors.find(d => d.id === doctorId)?.lastName
+      });
+    } catch (err) {
+      console.error('Error resetting password:', err);
+      setError('Failed to reset password. Please try again.');
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
+  // Close password reset modal
+  const closePasswordModal = () => {
+    setResetPasswordData(null);
+  };
+
   // Filter doctors by approval status
   const approvedDoctors = doctors.filter(doctor => doctor.approved === true);
   const pendingDoctors = doctors.filter(doctor => doctor.approved === false && !doctor.reviewedAt);
@@ -83,6 +120,41 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      {/* Password Reset Modal */}
+      {resetPasswordData && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mt-2">Password Reset Successful</h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500 mb-3">
+                  New temporary password for {resetPasswordData.doctorName}:
+                </p>
+                <div className="bg-gray-100 p-3 rounded-md mb-3">
+                  <p className="text-md font-mono text-gray-800">{resetPasswordData.tempPassword}</p>
+                </div>
+                <p className="text-xs text-gray-500 mb-3">
+                  Please provide this password to the doctor. They will be prompted to change it on their next login.
+                </p>
+              </div>
+              <div className="items-center px-4 py-3">
+                <button
+                  onClick={closePasswordModal}
+                  className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         <div className="bg-white shadow-sm rounded-lg p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Admin Dashboard</h2>
@@ -160,9 +232,16 @@ export default function AdminDashboard() {
                               }
                             }}
                             disabled={actionInProgress}
-                            className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                            className="text-red-600 hover:text-red-900 mr-3 disabled:opacity-50"
                           >
                             Reject
+                          </button>
+                          <button
+                            onClick={() => handlePasswordReset(doctor.id)}
+                            disabled={actionInProgress}
+                            className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                          >
+                            Reset Password
                           </button>
                         </td>
                       </tr>
@@ -204,6 +283,13 @@ export default function AdminDashboard() {
                           {doctor.reviewedAt ? new Date(doctor.reviewedAt).toLocaleDateString() : 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => handlePasswordReset(doctor.id)}
+                            disabled={actionInProgress}
+                            className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
+                          >
+                            Reset Password
+                          </button>
                           <button
                             onClick={() => {
                               const confirmed = confirm('Are you sure you want to revoke this doctor\'s approval?');
@@ -258,6 +344,13 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{doctor.notes || 'No reason provided'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => handlePasswordReset(doctor.id)}
+                            disabled={actionInProgress}
+                            className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
+                          >
+                            Reset Password
+                          </button>
                           <button
                             onClick={() => handleApprovalChange(doctor.id, true)}
                             disabled={actionInProgress}
