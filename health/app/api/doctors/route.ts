@@ -24,8 +24,16 @@ export async function POST(request: NextRequest) {
     // Parse the request body
     const body = await request.json();
     
+    console.log('Received doctor application data:', body);
+    
     // Validate required fields
     if (!body.firstName || !body.lastName || !body.email || !body.specialization) {
+      console.log('Missing required fields:', { 
+        firstName: !!body.firstName, 
+        lastName: !!body.lastName, 
+        email: !!body.email, 
+        specialization: !!body.specialization 
+      });
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -41,9 +49,12 @@ export async function POST(request: NextRequest) {
       phone: body.phone || '',
       specialization: body.specialization,
       licenseNumber: body.licenseNumber || '',
-      yearsOfExperience: body.yearsOfExperience || 0,
+      yearsOfExperience: typeof body.yearsOfExperience === 'number' ? body.yearsOfExperience : 0,
       education: body.education || '',
       bio: body.bio || '',
+      address: body.address || '',
+      dateOfBirth: body.dateOfBirth || '',
+      currentWorkplace: body.currentWorkplace || '',
       status: 'PENDING', // Default status
       createdAt: new Date().toISOString()
     };
@@ -52,8 +63,35 @@ export async function POST(request: NextRequest) {
     doctorApplications.push(newApplication);
     console.log('Created new doctor application:', newApplication);
     
-    // Return the new application
-    return NextResponse.json(newApplication);
+    // Also register the doctor for authentication
+    try {
+      const authResponse = await fetch('http://localhost:3000/api/doctor-auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: body.email,
+          firstName: body.firstName,
+          lastName: body.lastName,
+          education: body.education,
+          specialty: body.specialization
+        }),
+      });
+      
+      const authData = await authResponse.json();
+      console.log('Doctor auth registration result:', authData);
+      
+      // Return the new application with auth data
+      return NextResponse.json({
+        ...newApplication,
+        authData
+      });
+    } catch (authError) {
+      console.error('Error registering doctor auth:', authError);
+      // Continue even if auth registration fails
+      return NextResponse.json(newApplication);
+    }
   } catch (error) {
     console.error('Error in doctor application:', error);
     return NextResponse.json(
