@@ -101,19 +101,21 @@ export async function POST(request: NextRequest) {
       tempPassword: true, // Flag to indicate this is a temporary password
       approved: false, // Default to not approved - requires admin approval
       specialty: body.specialty || '',
-      qualifications: body.qualifications || '',
+      qualifications: body.education || '', // Map education to qualifications
       createdAt: new Date().toISOString()
     };
     
     // Add to storage
     doctorCredentials.push(newDoctor);
-    console.log('Created new doctor credentials:', { ...newDoctor, passwordHash: '[HIDDEN]' });
+    console.log('Created new doctor credentials:', { ...newDoctor, passwordHash: '[HIDDEN]', tempPassword });
     
     // Return credentials (including the temporary password)
     return NextResponse.json({
       id: newDoctor.id,
       email: newDoctor.email,
       tempPassword: tempPassword,
+      firstName: newDoctor.firstName,
+      lastName: newDoctor.lastName,
       message: 'Doctor registration successful. Please save these credentials.'
     });
   } catch (error) {
