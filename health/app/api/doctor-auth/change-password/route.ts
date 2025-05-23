@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import crypto from 'crypto';
 
-// In-memory storage for doctor credentials (in a real app, this would be in a database)
-// This should be imported from a shared module in a real application
-let doctorCredentials = [];
+// Import doctor credentials from the registration module
+import { doctorCredentials } from '../register/route';
 
 // Simple hash function for passwords (in a real app, use bcrypt or similar)
 function hashPassword(password) {
