@@ -1,13 +1,23 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import crypto from 'crypto';
 
 // Import doctor credentials from register route
 import { doctorCredentials } from '../register/route';
 
-// Simple hash function for passwords (in a real app, use bcrypt or similar)
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+// Password hashing using Web Crypto API
+async function hashPassword(password) {
+  // Convert the string to an ArrayBuffer
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  
+  // Hash the data using SHA-256
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  
+  // Convert the hash to a hex string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  return hashHex;
 }
 
 export async function POST(request: NextRequest) {
@@ -33,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Verify password
-    const passwordHash = hashPassword(body.password);
+    const passwordHash = await hashPassword(body.password);
     if (passwordHash !== doctor.passwordHash) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
@@ -49,8 +59,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Generate a simple session token (in a real app, use a proper JWT)
-    const sessionToken = crypto.randomBytes(32).toString('hex');
+    // Generate a simple session token using Web Crypto API
+    const randomValues = new Uint8Array(32);
+    crypto.getRandomValues(randomValues);
+    const sessionToken = Array.from(randomValues).map(b => b.toString(16).padStart(2, '0')).join('');
     
     // Create session (in a real app, store in a database or Redis)
     const session = {

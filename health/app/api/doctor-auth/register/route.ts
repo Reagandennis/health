@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import crypto from 'crypto';
+// Use the Web Crypto API instead of Node.js crypto
+// This is compatible with Edge Runtime
 
 // In-memory storage for doctor credentials (in a real app, this would be in a database)
 let doctorCredentials = [
@@ -50,20 +51,35 @@ let doctorCredentials = [
 // Export for use in other routes
 export { doctorCredentials };
 
-// Generate a random temporary password
-function generateTemporaryPassword(length = 8) {
+// Generate a random temporary password using Web Crypto API
+async function generateTemporaryPassword(length = 8) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
-  const randomBytes = crypto.randomBytes(length);
+  
+  // Use Web Crypto API to generate random values
+  const randomValues = new Uint8Array(length);
+  crypto.getRandomValues(randomValues);
+  
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(randomBytes[i] % chars.length);
+    result += chars.charAt(randomValues[i] % chars.length);
   }
   return result;
 }
 
-// Simple hash function for passwords (in a real app, use bcrypt or similar)
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+// Password hashing using Web Crypto API
+async function hashPassword(password) {
+  // Convert the string to an ArrayBuffer
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  
+  // Hash the data using SHA-256
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  
+  // Convert the hash to a hex string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  return hashHex;
 }
 
 export async function POST(request: NextRequest) {
@@ -89,13 +105,13 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate temporary password
-    const tempPassword = generateTemporaryPassword();
+    const tempPassword = await generateTemporaryPassword();
     
     // Create new doctor credentials
     const newDoctor = {
       id: `doc${doctorCredentials.length + 1}`,
       email: body.email,
-      passwordHash: hashPassword(tempPassword),
+      passwordHash: await hashPassword(tempPassword),
       firstName: body.firstName || '',
       lastName: body.lastName || '',
       tempPassword: true, // Flag to indicate this is a temporary password
